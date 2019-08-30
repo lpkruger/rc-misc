@@ -5,6 +5,7 @@ import "image/color"
 import "image/jpeg"
 import "image/png"
 import "image"
+import "sort"
 import "os"
 import "os/exec"
 
@@ -17,8 +18,8 @@ type Path struct {
 	path []XY
 }
 
-func bounds(xx int, _ int) bool {
-	return (xx >= 135 && xx <= 1145)
+func bounds(xx int, yy int) bool {
+	return (xx >= 135 && xx <= 1145 && yy > 0)
 }
 
 // 150 is an acceptable threshold for distinguishing white from black
@@ -88,10 +89,18 @@ func solve(img *image.RGBA) {
 			func(xy XY) XY { return XY{xy.x + 1, xy.y} },
 			func(xy XY) XY { return XY{xy.x, xy.y - 1} },
 			func(xy XY) XY { return XY{xy.x, xy.y + 1} },
+			/*
+			func(xy XY) XY { return XY{xy.x + 1, xy.y + 1} },
+			func(xy XY) XY { return XY{xy.x + 1, xy.y - 1} },
+			func(xy XY) XY { return XY{xy.x - 1, xy.y + 1} },
+			func(xy XY) XY { return XY{xy.x - 1, xy.y - 1} },
+			*/
+
 		}
 
 		stride := 2
 
+		next_points := make([]XY, 0)
 		for _, dir := range directions {
 			ok := true
 			newxy := xy
@@ -102,9 +111,41 @@ func solve(img *image.RGBA) {
 					break
 				}
 			}
+
 			if ok {
-				queue = enq(queue, newxy.x, newxy.y)
+				next_points = append(next_points, newxy)
 			}
+		}
+
+		pretty_score := func(xy XY) int {
+			min := 100000
+			for _, dir := range directions {
+				count := 0
+				newxy := xy
+				for {
+					if count > min {
+						break
+					}
+					newxy = dir(newxy)
+					if isit(img, newxy.x, newxy.y) != 0 && bounds(newxy.x, newxy.y) {
+						count++
+						continue
+					}
+					if count < min {
+						min = count
+					}
+					break
+				}
+			}
+			return min
+		}
+
+		sort.Slice(next_points, func(i, j int) bool {
+			return pretty_score(next_points[i]) > pretty_score(next_points[j])
+		})
+
+		for _, newxy := range next_points {
+			queue = enq(queue, newxy.x, newxy.y)
 		}
 
 		fmt.Println(len(queue), len(queue[0].path)) //, queue[0].path)
