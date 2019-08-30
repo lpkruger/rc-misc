@@ -3,9 +3,7 @@ package main
 import "fmt"
 import "image/color"
 import "image/jpeg"
-import "image/png"
 
-//import "io"
 import "image"
 import "os"
 import "os/exec"
@@ -163,7 +161,6 @@ func main() {
 	jpeg.Encode(output, img2, nil)
 	output.Close()
 
+	// on MacOS, this displays the image, remove or change if it causes problems
 	exec.Command("open", "./solution.jpg").Run()
-
-	_ = png.Encode
 }
