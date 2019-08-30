@@ -15,7 +15,8 @@ type XY struct {
 }
 
 type Path struct {
-	path []XY
+	xy XY
+	next *Path
 }
 
 func bounds(xx int, yy int) bool {
@@ -51,15 +52,14 @@ func solve(img *image.RGBA) {
 	target_xy := XY{1145, 1285}
 
 	queue := make([]Path, 0)
-	queue = append(queue, Path{make([]XY, 0)})
-	queue[0].path = append(queue[0].path, source_xy) // start point
+	queue = append(queue, Path{source_xy, nil})
 	visited := make(map[XY]bool)
 	solution := queue[0]
 	for {
 		hd := queue[0]
 		//fmt.Println(hd)
 		queue = queue[1:]
-		xy := hd.path[len(hd.path)-1]
+		xy := hd.xy
 
 		if xy.x == target_xy.x && xy.y == target_xy.y {
 			solution = hd
@@ -77,11 +77,8 @@ func solve(img *image.RGBA) {
 			if (!bounds(x, y) || isit(img, x, y) == 0 || visited[XY{x, y}]) {
 				return q
 			}
-			newpath := make([]XY, len(hd.path))
-			copy(newpath, hd.path)
-			up := XY{x, y}
-			p := Path{append(newpath, up)}
-			return append(q, p)
+			newpath := Path{XY{x, y}, &hd}
+			return append(q, newpath)
 		}
 
 		directions := [...](func(xy XY) XY){
@@ -148,11 +145,11 @@ func solve(img *image.RGBA) {
 			queue = enq(queue, newxy.x, newxy.y)
 		}
 
-		fmt.Println(len(queue), len(queue[0].path)) //, queue[0].path)
+		fmt.Println(len(queue))
 	}
 
-	for i := 0; i < len(solution.path); i++ {
-		drawSquare(img, solution.path[i].x, solution.path[i].y, red)
+	for next := &solution; next != nil; next = next.next {
+		drawSquare(img, next.xy.x, next.xy.y, red)
 	}
 
 	drawSquare(img, 100, 470, red)
