@@ -84,50 +84,30 @@ func solve(img *image.RGBA) {
 			return append(q, p)
 		}
 
+		directions := [...](func(xy XY) XY){
+			func(xy XY) XY { return XY{xy.x - 1, xy.y} },
+			func(xy XY) XY { return XY{xy.x + 1, xy.y} },
+			func(xy XY) XY { return XY{xy.x, xy.y - 1} },
+			func(xy XY) XY { return XY{xy.x, xy.y + 1} },
+		}
+
 		stride := 4
-		ok := true
-		for i := 0; i < stride; i++ {
-			if isit(img, xy.x-i, xy.y) == 0 {
-				ok = false
+
+		for _, dir := range directions {
+			ok := true
+			newxy := xy
+			for i := 0; i < stride; i++ {
+				newxy = dir(newxy)
+				if isit(img, newxy.x, newxy.y) == 0 {
+					ok = false
+					break
+				}
 			}
-
-		}
-		if ok {
-			queue = enq(queue, xy.x-stride, xy.y)
-		}
-
-		ok = true
-		for i := 0; i < stride; i++ {
-			if isit(img, xy.x+i, xy.y) == 0 {
-				ok = false
+			if ok {
+				queue = enq(queue, newxy.x, newxy.y)
 			}
-
-		}
-		if ok {
-			queue = enq(queue, xy.x+stride, xy.y)
 		}
 
-		ok = true
-		for i := 0; i < stride; i++ {
-			if isit(img, xy.x, xy.y-i) == 0 {
-				ok = false
-			}
-
-		}
-		if ok {
-			queue = enq(queue, xy.x, xy.y-stride)
-		}
-
-		ok = true
-		for i := 0; i < stride; i++ {
-			if isit(img, xy.x, xy.y+i) == 0 {
-				ok = false
-			}
-
-		}
-		if ok {
-			queue = enq(queue, xy.x, xy.y+4)
-		}
 		fmt.Println(len(queue), len(queue[0].path)) //, queue[0].path)
 	}
 
