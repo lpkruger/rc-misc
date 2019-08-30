@@ -121,7 +121,7 @@ func solve(img *image.RGBA) {
 
     	ok = true
     	for i := 0; i<stride; i++ {
-    		if (isit(img, xy.x, xy.y-i) == 0) {
+    		if (isit(img, xy.x, xy.y+i) == 0) {
     			ok = false;
     		}
 
