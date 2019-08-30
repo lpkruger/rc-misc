@@ -3,7 +3,7 @@ package main
 import "fmt"
 import "image/color"
 import "image/jpeg"
-
+import "image/png"
 import "image"
 import "os"
 import "os/exec"
@@ -18,7 +18,7 @@ type Path struct {
 }
 
 func bounds(xx int, _ int) bool {
-	return (xx >= 100 && xx <= 3000)
+	return (xx >= 135 && xx <= 1145)
 }
 
 // 150 is an acceptable threshold for distinguishing white from black
@@ -33,9 +33,9 @@ func isit(img *image.RGBA, xx int, yy int) uint8 {
 }
 
 func drawSquare(img *image.RGBA, xx int, yy int, c color.Color) {
-	d := 6
-	for y := yy - d; y < yy+d; y++ {
-		for x := xx - d; x < xx+d; x++ {
+	d := 2
+	for y := yy - d; y <= yy+d; y++ {
+		for x := xx - d; x <= xx+d; x++ {
 			if isit(img, x, y) != 0 {
 				img.Set(x, y, c)
 			}
@@ -45,12 +45,13 @@ func drawSquare(img *image.RGBA, xx int, yy int, c color.Color) {
 
 func solve(img *image.RGBA) {
 	red := color.RGBA{0xff, 0x10, 0x10, 0xff}
-	target_x := 3000
-	target_y := 3746
+
+	source_xy := XY{135, 145}
+	target_xy := XY{1145, 1285}
 
 	queue := make([]Path, 0)
 	queue = append(queue, Path{make([]XY, 0)})
-	queue[0].path = append(queue[0].path, XY{100, 470}) // start point
+	queue[0].path = append(queue[0].path, source_xy) // start point
 	visited := make(map[XY]bool)
 	solution := queue[0]
 	for {
@@ -59,7 +60,7 @@ func solve(img *image.RGBA) {
 		queue = queue[1:]
 		xy := hd.path[len(hd.path)-1]
 
-		if xy.x == target_x && xy.y == target_y {
+		if xy.x == target_xy.x && xy.y == target_xy.y {
 			solution = hd
 			break
 		}
@@ -89,7 +90,7 @@ func solve(img *image.RGBA) {
 			func(xy XY) XY { return XY{xy.x, xy.y + 1} },
 		}
 
-		stride := 4
+		stride := 2
 
 		for _, dir := range directions {
 			ok := true
@@ -114,7 +115,7 @@ func solve(img *image.RGBA) {
 	}
 
 	drawSquare(img, 100, 470, red)
-	drawSquare(img, target_x, target_y, red)
+	drawSquare(img, target_xy.x, target_xy.y, red)
 }
 
 func convert(img image.Image) *image.RGBA {
@@ -147,11 +148,9 @@ func convert(img image.Image) *image.RGBA {
 }
 
 func main() {
-	fmt.Println("hello world")
-	file, _ := os.Open("SpaceMaze.jpg")
+	file, _ := os.Open("RC-Maze.png")
 	defer file.Close()
-	img, _ := jpeg.Decode(file)
-	//fmt.Println(img)
+	img, _ := png.Decode(file)
 
 	img2 := convert(img)
 	solve(img2)
