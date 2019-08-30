@@ -22,6 +22,9 @@ type Path struct {
 func bounds(xx int, _ int) bool {
 	return (xx >= 100 && xx <= 3000)
 }
+
+// 150 is an acceptable threshold for distinguishing white from black
+// in this image.
 func isit(img *image.RGBA, xx int, yy int) uint8 {
 	g, _, _, _ := img.At(xx, yy).RGBA()
 	g >>= 8
@@ -35,7 +38,9 @@ func drawSquare(img *image.RGBA, xx int, yy int, c color.Color) {
     d := 6
 	for y := yy-d; y < yy+d; y++ {
 		for x := xx-d; x < xx+d; x++ {
-			img.Set(x, y, c)
+			if (isit(img, x, y) != 0) {
+			    img.Set(x, y, c)
+			}
 		}
 	}
 }
